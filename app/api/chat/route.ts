@@ -20,8 +20,8 @@ export async function POST(req: Request) {
     model: 'anthropic/claude-sonnet-4.6',
     system: buildSystemPrompt(locale),
     messages: await convertToModelMessages(messages),
-    maxOutputTokens: 600,
-    temperature: 0.4,
+    maxOutputTokens: 1000,
+    temperature: 0.3,
   });
 
   return result.toUIMessageStreamResponse();
