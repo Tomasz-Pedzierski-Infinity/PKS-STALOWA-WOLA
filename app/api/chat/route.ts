@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     : defaultLocale;
 
   const result = streamText({
-    model: google('gemini-2.5-flash'),
+    model: google('gemini-2.5-flash-lite'),
     system: buildSystemPrompt(locale),
     messages: await convertToModelMessages(messages),
     maxOutputTokens: 1000,
