@@ -1,4 +1,5 @@
 import { streamText, convertToModelMessages, type UIMessage } from 'ai';
+import { google } from '@ai-sdk/google';
 import { buildSystemPrompt } from '@/lib/pekaesik-knowledge';
 import { locales, defaultLocale, type Locale } from '@/lib/i18n';
 
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
     : defaultLocale;
 
   const result = streamText({
-    model: 'anthropic/claude-sonnet-4.6',
+    model: google('gemini-2.5-flash'),
     system: buildSystemPrompt(locale),
     messages: await convertToModelMessages(messages),
     maxOutputTokens: 1000,
