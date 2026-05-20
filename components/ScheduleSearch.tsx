@@ -31,12 +31,15 @@ function ScheduleSearchInner({ locale, dict }: { locale: Locale; dict: Dictionar
   const [sort, setSort] = useState<'cheapest' | 'fastest' | 'earliest'>('earliest');
 
   const connections = useMemo(() => {
-    const sorted = [...mockConnections];
-    if (sort === 'cheapest') sorted.sort((a, b) => a.price - b.price);
-    if (sort === 'fastest') sorted.sort((a, b) => parseDuration(a.duration) - parseDuration(b.duration));
-    if (sort === 'earliest') sorted.sort((a, b) => a.departure.localeCompare(b.departure));
-    return sorted;
-  }, [sort]);
+    const normalize = (s: string) => s.trim().toLocaleLowerCase('pl');
+    const matches = mockConnections.filter(
+      (c) => normalize(c.from) === normalize(from) && normalize(c.to) === normalize(to)
+    );
+    if (sort === 'cheapest') matches.sort((a, b) => a.price - b.price);
+    if (sort === 'fastest') matches.sort((a, b) => parseDuration(a.duration) - parseDuration(b.duration));
+    if (sort === 'earliest') matches.sort((a, b) => a.departure.localeCompare(b.departure));
+    return matches;
+  }, [sort, from, to]);
 
   return (
     <div className="space-y-8">
@@ -71,20 +74,28 @@ function ScheduleSearchInner({ locale, dict }: { locale: Locale; dict: Dictionar
       </div>
 
       <div className="space-y-3">
-        <AnimatePresence mode="popLayout">
-          {connections.map((c, i) => (
-            <motion.div
-              key={c.id}
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3, delay: i * 0.04 }}
-            >
-              <ConnectionCard c={c} dict={dict} />
-            </motion.div>
-          ))}
-        </AnimatePresence>
+        {connections.length === 0 ? (
+          <div className="card p-8 text-center text-ink-500 text-sm">
+            {locale === 'pl'
+              ? `Brak połączeń ${from} → ${to} w naszej bazie. Sprawdź inną parę miast lub zadzwoń: +48 15 842 58 11 (wew. 33).`
+              : `No connections ${from} → ${to} in our database. Try another pair or call: +48 15 842 58 11 (ext. 33).`}
+          </div>
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {connections.map((c, i) => (
+              <motion.div
+                key={c.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, delay: i * 0.04 }}
+              >
+                <ConnectionCard c={c} dict={dict} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        )}
       </div>
     </div>
   );
@@ -98,7 +109,7 @@ function ConnectionCard({ c, dict }: { c: Connection; dict: Dictionary }) {
         <div className="flex items-center gap-2 sm:gap-6">
           <div className="text-center min-w-0">
             <div className="font-display text-xl sm:text-3xl font-bold tabular-nums">{c.departure}</div>
-            <div className="text-[10px] sm:text-xs text-ink-500 mt-0.5 truncate">Stalowa Wola</div>
+            <div className="text-[10px] sm:text-xs text-ink-500 mt-0.5 truncate">{c.from}</div>
           </div>
 
           <div className="flex-1 relative px-1 sm:px-4 min-w-0">
@@ -120,7 +131,7 @@ function ConnectionCard({ c, dict }: { c: Connection; dict: Dictionary }) {
 
           <div className="text-center min-w-0">
             <div className="font-display text-xl sm:text-3xl font-bold tabular-nums">{c.arrival}</div>
-            <div className="text-[10px] sm:text-xs text-ink-500 mt-0.5 truncate">Rzeszów</div>
+            <div className="text-[10px] sm:text-xs text-ink-500 mt-0.5 truncate">{c.to}</div>
           </div>
         </div>
 
